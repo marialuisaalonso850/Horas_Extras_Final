@@ -229,6 +229,8 @@ const importarExcel = async (req, res) => {
                 if (!row || row.every(cell => cell === null || cell === "")) continue;
 
                 let cedula = row[headerIndexMap.identificacion];
+                let nombre = row[headerIndexMap.nombre_completo];
+
                 let funcionario = null;
 
 
@@ -237,8 +239,8 @@ const importarExcel = async (req, res) => {
                     const cedulaTemporal = `TMP-${filaActual}`;
                     const nombreLimpio = nombre.toString().trim();
                     const valorCargo = row[headerIndexMap.cargo];
-                    console.log("Cargos"+valorCargo);
-                    
+                    console.log("Cargos" + valorCargo);
+
                     const nombreCargo = normalizarCargo(valorCargo);
 
                     let cargoDoc = await Cargo.findOne({ name: nombreCargo });
@@ -266,6 +268,7 @@ const importarExcel = async (req, res) => {
                     cedula = cedulaTemporal;
                 } else {
                     const cedulaNormalizada = cedula?.toString().replace(/[^\d]/g, "").trim();
+                    const nombre_completo_Normalizada = nombre?.toString().replace(/[^\d]/g, "").trim();
                     if (!cedulaNormalizada) continue;
                     const nombreHojaNormalizado = normalizeHeader(sheetName);
                     let tipoOperarioDetectado = null;
@@ -273,6 +276,11 @@ const importarExcel = async (req, res) => {
                     else if (nombreHojaNormalizado.includes("temporal")) tipoOperarioDetectado = "Temporal";
 
                     funcionario = await Funcionario.findOne({ identificacion: cedulaNormalizada });
+                    if (funcionario && funcionario.nombre_completo !== nombre_completo_Normalizada) {
+                        console.log("nombre Base"+funcionario.nombre_completo !== nombre_completo_Normalizada+"Hoja");
+                        
+                       // throw new Error(`La cédula ${cedulaNormalizada} ya está registrada para otro funcionario (${funcionario.nombre_completo}).`);
+                    }
                     if (!funcionario) {
                         const nombre = row[headerIndexMap.nombre_completo];
                         if (!nombre || !tipoOperarioDetectado) {
@@ -307,8 +315,8 @@ const importarExcel = async (req, res) => {
                                     resumen.cargosCreados++;
                                 }
                                 nuevoFuncionarioData.Cargo = cargoPlanta._id;
-                                console.log("Cargo Planta"+nuevoFuncionarioData);
-                                
+                                console.log("Cargo Planta" + nuevoFuncionarioData);
+
                             }
                         }
                         funcionario = new Funcionario(nuevoFuncionarioData);
@@ -369,7 +377,6 @@ const importarExcel = async (req, res) => {
                 registrosValidados.push(nuevaExtra);
                 resumen.registrosGuardados++;
 
-                resumen.registrosGuardados++;
             } catch (error) {
                 console.error(`❌ Error en fila ${filaActual}:`, error.message);
                 resumen.registrosFallidos++;
@@ -388,23 +395,17 @@ const importarExcel = async (req, res) => {
 
         if (hayRegistrosRepetidos) {
             mensajeGeneral = "⚠️ Ya existen registros de horas extras en este mes para este tipo de operario.";
-            console.log(mensajeGeneral);
-            
         }
         if (resumen.errores.length > 0) {
-              console.log("🧩 Errores detectados en la importación:", resumen.errores);
             const detalleErrores = resumen.errores.map(e =>
                 typeof e === "string" ? `➡️ ${e}` : `➡️ Fila ${e.fila}, columna "${e.columna}": ${e.mensaje}`
-                
             ).join("\n");
 
             return res.status(400).json({
                 success: false,
                 message: `⚠️ No se importó ningún registro porque se encontraron errores:\n${detalleErrores}`,
-                errores: resumen.errores,
-            }
-        );
-            
+                errores: resumen.errores
+            });
         }
 
         await Promise.all(registrosValidados.map(r => r.save()));

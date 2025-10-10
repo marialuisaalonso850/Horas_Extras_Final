@@ -1,45 +1,37 @@
 version: '3.8'
 
 services:
-  mongodb:
+  database:
     image: mongo:6
     container_name: mongodb
     ports:
       - "27017:27017"
     volumes:
-      - ./data/db:/data/db
-  database:
-    image: mongo:latest
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - ./mongo-data:/data/db # Persiste los datos de la BD en una carpeta local
+      - ./mongo-data:/data/db  # Aquí se guardarán los datos de MongoDB
 
-  # Servicio del Backend (tu API de Node.js)
   backend:
-    build: ./horas-extra-app-epa # Le dice que construya la imagen usando el Dockerfile en la carpeta 'backend'
+    image: desarrollo147/horas-extra-app-epa:latest
+    build: ./horas-extra-app-epa
     container_name: backend-api
     ports:
       - "3000:3000"
     environment:
-      # MUY IMPORTANTE: La URI de la BD ahora apunta al nombre del servicio 'database'
-      - MONGO_URI=mongodb://mongodb:27017/epadatabase
-      - PORT= 3000
-      - SECRET_JWT_SEED = Esto-Es-UnA-PalbR@_SecretA12345678
-      - REFRESH_JWT_SEED = mi_clave_super_segura_refresh
-      - EMAIL_USER= desarrollo.tic@epa.gov.co
-      - EMAIL_PASS= kdgq zmfw yfcw mfqv
-      - INICIO_JORNADA= 6
-      - FIN_JORNADA= 18
+      - MONGO_URI=mongodb://database:27017/epadatabase 
+      - PORT=3000
+      - SECRET_JWT_SEED=Esto-Es-UnA-PalbR@_SecretA12345678
+      - REFRESH_JWT_SEED=mi_clave_super_segura_refresh
+      - EMAIL_USER=desarrollo.tic@epa.gov.co
+      - EMAIL_PASS=kdgq zmfw yfcw mfqv
+      - INICIO_JORNADA=6
+      - FIN_JORNADA=18
     depends_on:
-      - database # No iniciar el backend hasta que la base de datos esté lista
+      - database
 
-  # Servicio del Frontend (Nginx)
   frontend:
-    build: ./horas-extra-frontend # Construye la imagen usando el Dockerfile en la carpeta 'frontend'
+    image: desarrollo147/horas-extra-frontend:latest
+    build: ./horas-extra-frontend
     container_name: frontend-app
     ports:
-      - "5500:80" # Mapea el puerto 80 del contenedor a tu puerto 5500 local
+      - "5500:80"
     depends_on:
-      - backend # No iniciar el frontend hasta que el backend esté listo
+      - backend

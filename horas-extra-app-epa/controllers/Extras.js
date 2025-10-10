@@ -99,7 +99,7 @@ const crearExtras = async (req, res) => {
   try {
     let data = req.body;
 
-    console.log("Datos recibidos para crearExtras:", data);
+   // console.log("Datos recibidos para crearExtras:", data);
 
     const validacion = await validarTurnoYHoras(data);
     if (!validacion.success) {
@@ -211,7 +211,7 @@ const updateExtra = async (req, res) => {
 
 const exportarExtrasExcel = async (req, res) => {
   try {
-    const { identificacion, fechaInicio, fechaFin } = req.query;
+    const { identificacion, fechaInicio, fechaFin} = req.query;
     let query = {};
     let funcionarioFiltrado = null;
 
@@ -219,7 +219,7 @@ const exportarExtrasExcel = async (req, res) => {
 
 
     if (identificacion) {
-      const func = await Funcionario.findOne({ identificacion });
+      const func = await Funcionario.findOne({ identificacion  });
       if (!func) {
         return res.status(404).json({ success: false, message: 'No se encontró un funcionario con esa identificación.' });
       }

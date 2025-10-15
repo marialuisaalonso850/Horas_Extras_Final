@@ -1,4 +1,4 @@
-name: Build and Push to Docker Hub
+name: Build, Push and Test Backend
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -21,18 +21,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push backend image
+      - name: Build and push backend image (detailed logs)
         uses: docker/build-push-action@v6
         with:
           context: ./horas-extra-app-epa
           file: ./horas-extra-app-epa/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-backend:latest
+          provenance: false
+          build-args: |
+            BUILDKIT_PROGRESS=plain
 
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./horas-extra-frontend
-          file: ./horas-extra-frontend/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-frontend:latest
+      - name: Run backend container for testing
+        run: |
+          echo "🚀 Iniciando backend temporal para pruebas..."
+          docker run -d -p 3000:3000 --name test-backend ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-backend:latest
+          sleep 10
+          echo "Probando endpoint /api/horas ..."
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{"usuario":"test","horas":2,"fecha":"2025-10-15"}' \
+            http://localhost:3000/api/horas || (echo "❌ Error al subir horas" && docker logs test-backend && exit 1)
+
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop test-backend || true
+          docker rm test-backend || true

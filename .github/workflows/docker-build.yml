@@ -37,10 +37,10 @@ jobs:
           echo "🚀 Iniciando backend temporal para pruebas..."
           docker run -d -p 3000:3000 --name test-backend ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-backend:latest
           sleep 10
-          echo "Probando endpoint /api/horas ..."
+          echo "Probando endpoint /api/crear ..."
           curl -X POST -H "Content-Type: application/json" \
             -d '{"usuario":"test","horas":2,"fecha":"2025-10-15"}' \
-            http://localhost:3000/api/horas || (echo "❌ Error al subir horas" && docker logs test-backend && exit 1)
+            http://192.168.137.24:3000/api/crear || (echo "❌ Error al subir horas" && docker logs test-backend && exit 1)
 
       - name: Stop and remove container
         if: always()

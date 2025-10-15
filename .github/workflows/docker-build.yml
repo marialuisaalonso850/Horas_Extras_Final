@@ -1,4 +1,4 @@
-name: Build, Push and Test Backend
+name: Build, Push and Test Full App (Backend + Frontend)
 
 on:
   push:
@@ -21,29 +21,74 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push backend image (detailed logs)
+      # --- BACKEND ---
+      - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
           context: ./horas-extra-app-epa
           file: ./horas-extra-app-epa/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-backend:latest
-          provenance: false
+
+      # --- FRONTEND ---
+      - name: Build and push frontend image (con API interna)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./horas-extra-frontend
+          file: ./horas-extra-frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-frontend:latest
           build-args: |
-            BUILDKIT_PROGRESS=plain
+            VITE_API_URL=http://backend:3000/api
 
-      - name: Run backend container for testing
+      # --- TESTING EN DOCKER ---
+      - name: Create Docker network
+        run: docker network create test-net
+
+      - name: Run MongoDB
+        run: docker run -d --name test-mongo --network test-net mongo:6
+
+      - name: Run Backend
         run: |
-          echo "🚀 Iniciando backend temporal para pruebas..."
-          docker run -d -p 3000:3000 --name test-backend ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-backend:latest
-          sleep 10
-          echo "Probando endpoint /api/crear ..."
-          curl -X POST -H "Content-Type: application/json" \
-            -d '{"usuario":"test","horas":2,"fecha":"2025-10-15"}' \
-            http://192.168.137.24:3000/api/crear || (echo "❌ Error al subir horas" && docker logs test-backend && exit 1)
+          docker run -d \
+            --name backend \
+            --network test-net \
+            -p 3000:3000 \
+            -e MONGO_URI="mongodb://test-mongo:27017/epadatabase" \
+            -e PORT=3000 \
+            -e SECRET_JWT_SEED="Esto-Es-UnA-PalbR@_SecretA12345678" \
+            -e REFRESH_JWT_SEED="mi_clave_super_segura_refresh" \
+            -e EMAIL_USER="desarrollo.tic@epa.gov.co" \
+            -e EMAIL_PASS="kdgq zmfw yfcw mfqv" \
+            -e INICIO_JORNADA=6 \
+            -e FIN_JORNADA=18 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-backend:latest
 
-      - name: Stop and remove container
+      - name: Run Frontend
+        run: |
+          docker run -d \
+            --name frontend \
+            --network test-net \
+            -p 8080:80 \
+            -e VITE_API_URL="http://backend:3000/api" \
+            ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-frontend:latest
+
+      - name: Wait for backend to start
+        run: sleep 15
+
+      - name: Test backend endpoint
+        run: |
+          echo "🧪 Probando endpoint interno /api/crear..."
+          docker exec backend curl -X POST -H "Content-Type: application/json" \
+            -d '{"usuario":"test","horas":2,"fecha":"2025-10-15"}' \
+            http://localhost:3000/api/crear \
+            || (echo "❌ Falló el endpoint" && docker logs backend && exit 1)
+
+      - name: Stop containers and clean up
         if: always()
         run: |
-          docker stop test-backend || true
-          docker rm test-backend || true
+          docker logs backend || true
+          docker logs frontend || true
+          docker stop backend frontend test-mongo || true
+          docker rm backend frontend test-mongo || true
+          docker network rm test-net || true

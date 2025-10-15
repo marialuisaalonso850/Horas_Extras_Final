@@ -277,9 +277,9 @@ const importarExcel = async (req, res) => {
 
                     funcionario = await Funcionario.findOne({ identificacion: cedulaNormalizada });
                     if (funcionario && funcionario.nombre_completo !== nombre_completo_Normalizada) {
-                        console.log("nombre Base"+funcionario.nombre_completo !== nombre_completo_Normalizada+"Hoja");
-                        
-                       // throw new Error(`La cédula ${cedulaNormalizada} ya está registrada para otro funcionario (${funcionario.nombre_completo}).`);
+                        console.log("nombre Base" + funcionario.nombre_completo !== nombre_completo_Normalizada + "Hoja");
+
+                        // throw new Error(`La cédula ${cedulaNormalizada} ya está registrada para otro funcionario (${funcionario.nombre_completo}).`);
                     }
                     if (!funcionario) {
                         const nombre = row[headerIndexMap.nombre_completo];
@@ -403,8 +403,9 @@ const importarExcel = async (req, res) => {
 
             return res.status(400).json({
                 success: false,
-                message: `⚠️ No se importó ningún registro porque se encontraron errores:\n${detalleErrores}`,
-                errores: resumen.errores
+                error: "No se pudo importar el archivo",
+                message: detalleErrores,
+                detalles: resumen.errores
             });
         }
 

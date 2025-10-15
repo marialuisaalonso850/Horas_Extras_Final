@@ -1,38 +1,39 @@
-name: Build and Push to Docker Hub
+name: Build and Test Docker App
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build Docker images
+        run: docker compose -f docker-compose.yml build
 
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./horas-extra-app-epa
-          file: ./horas-extra-app-epa/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-backend:latest
+      - name: Start containers
+        run: docker compose -f docker-compose.yml up -d
 
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./horas-extra-frontend
-          file: ./horas-extra-frontend/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/horasextra-frontend:latest
+      - name: Wait for backend to start
+        run: sleep 10
+
+      - name: Show backend logs (preview)
+        run: docker logs backend-api
+
+      - name: Test backend health
+        run: |
+          echo "Probando conexión con backend..."
+          curl -f http://192.168.137.24:3000/api/health || (echo "❌ Backend no respondió correctamente" && docker logs backend-api && exit 1)
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker-compose.yml down

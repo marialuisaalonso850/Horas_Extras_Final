@@ -56,8 +56,8 @@ const router = Router();
 router.post(
   '/newUser', // TODO: Debo dejar esto !!!
   [
-    validarJWT,
-    SuperAdmin,
+   // validarJWT,
+   // SuperAdmin,
     check('name', 'El nombre es obligatorio').not().isEmpty(),
     check('email', 'El correo es obligatorio').isEmail(),
     check('password', 'El password debe de ser de 6 caracteres').isLength({ min: 6 }),

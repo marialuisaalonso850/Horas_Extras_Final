@@ -18,7 +18,7 @@ dbConnection();
 
 // CORS
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "http://localhost:5500",
   exposedHeaders: ["Content-Disposition"],
   credentials: true,              
 }));
@@ -53,6 +53,10 @@ function getLocalIP() {
   }
   return 'localhost';
 }
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Backend funcionando correctamente' });
+});
 
 // Escuchar peticiones
 app.listen( process.env.PORT, () => {

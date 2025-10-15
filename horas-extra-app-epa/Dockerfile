@@ -1,6 +1,9 @@
 # Usa una imagen oficial de Node.js ligera y segura
 FROM node:18-alpine
 
+# Instala curl para pruebas internas
+RUN apk add --no-cache curl
+
 # Establece el directorio de trabajo dentro del contenedor
 WORKDIR /usr/src/app
 

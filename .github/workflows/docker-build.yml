@@ -81,7 +81,7 @@ jobs:
           echo "🧪 Probando endpoint interno /api/crear..."
           docker exec backend curl -X POST -H "Content-Type: application/json" \
             -d '{"usuario":"test","horas":2,"fecha":"2025-10-15"}' \
-            http://localhost:3000/api/crear \
+            http://localhost:3000/api/extras/crear \
             || (echo "❌ Falló el endpoint" && docker logs backend && exit 1)
 
       - name: Stop containers and clean up

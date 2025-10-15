@@ -7,7 +7,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./mongo-data:/data/db  # Aquí se guardarán los datos de MongoDB
+      - ./mongo-data:/data/db
 
   backend:
     image: desarrollo147/horas-extra-app-epa:latest
@@ -16,7 +16,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - MONGO_URI=mongodb://database:27017/epadatabase 
+      - MONGO_URI=mongodb://database:27017/epadatabase
       - PORT=3000
       - SECRET_JWT_SEED=Esto-Es-UnA-PalbR@_SecretA12345678
       - REFRESH_JWT_SEED=mi_clave_super_segura_refresh
@@ -35,3 +35,4 @@ services:
       - "5500:80"
     depends_on:
       - backend
+

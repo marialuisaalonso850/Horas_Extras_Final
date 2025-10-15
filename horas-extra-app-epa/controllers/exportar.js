@@ -384,8 +384,7 @@ const importarExcel = async (req, res) => {
             }
         }
 
-        // Después del FOR principal de filas
-        let mensajeGeneral = "✅ Importación completada sin errores.";
+        
 
         const hayRegistrosRepetidos = resumen.errores.some(e =>
             typeof e === "string"
@@ -394,8 +393,13 @@ const importarExcel = async (req, res) => {
         );
 
         if (hayRegistrosRepetidos) {
-            mensajeGeneral = "⚠️ Ya existen registros de horas extras en este mes para este tipo de operario.";
+            return res.status(400).json({
+                success: false,
+                error: "Importación no completada",
+                message: "⚠️ Ya existen registros de horas extras en este mes para este tipo de operario."
+            });
         }
+
         if (resumen.errores.length > 0) {
             const detalleErrores = resumen.errores.map(e =>
                 typeof e === "string" ? `➡️ ${e}` : `➡️ Fila ${e.fila}, columna "${e.columna}": ${e.mensaje}`

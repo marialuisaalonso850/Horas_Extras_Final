@@ -34,15 +34,16 @@ export const horasExtraService = {
     }
   },
 
-  actualizarExtras: async (id, data) => {
+  actualizarExtras: async(id, data) => {
     try {
       const res = await axiosInstance.put(`/extras/update/${id}`, data);
       return res.data;
     } catch (error) {
       console.error('Error actualizando horas extra', error);
-      throw error.response?.data || error.message;
+      throw error.response?.data || error.message;      
     }
   },
+
 
   listarExtrasPorFuncionario: async (identificacion) => {
     try {

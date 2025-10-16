@@ -1,0 +1,33 @@
+db.horasextras.find()
+db.horasextras.deleteMany({})
+db.reportes.deleteMany({})
+db.horasextras.deleteMany({})
+db.horasextras.find()
+db.reportes.deleteMany({})
+db.horasextras.deleteMany({})
+db.horasextras.find()
+show collections
+db.reportes.deleteMany({})
+db.horasextras.deleteMany({})
+show collections
+use epadatabase
+db.horasextras.find()
+show collections
+db.horasextras.find()
+ cls
+show collections
+db.createCollection("HorasExtras")
+db.createCollection("horasextras")
+use epadatabase
+show collections
+use epadatabase
+docker exec -it mongodb mongosh
+db.horasextras.find()
+cls
+db.horasextras.find()
+cls
+db.dropDatabase()
+db.horasextras.find()
+use epadatabase
+db.horasextras.find().pretty()
+use epadatabase

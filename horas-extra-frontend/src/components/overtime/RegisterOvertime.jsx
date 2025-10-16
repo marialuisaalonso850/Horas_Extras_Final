@@ -100,7 +100,6 @@ export const RegisterOvertime = ({ onBack }) => {
       setLoading(false)
       setHojasExcel([]); // limpia select
       setOpenModal(true);
-
     }
   };
 

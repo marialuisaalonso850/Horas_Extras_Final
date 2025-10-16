@@ -372,8 +372,8 @@ const importarExcel = async (req, res) => {
                     registroLimpio.fecha_fin_trabajo = calculos.fecha_fin_trabajo_ajustada;
                 }
 
-                const datosParaGuardar = { ...registroLimpio, ...calculos };
-                const nuevaExtra = new Extras(datosParaGuardar);
+                const { _id, ...resto } = { ...registroLimpio, ...calculos };
+                const nuevaExtra = new Extras(resto);
                 registrosValidados.push(nuevaExtra);
                 resumen.registrosGuardados++;
 
@@ -383,8 +383,6 @@ const importarExcel = async (req, res) => {
                 resumen.errores.push(`Fila ${filaActual}: ${error.message}`);
             }
         }
-
-        
 
         const hayRegistrosRepetidos = resumen.errores.some(e =>
             typeof e === "string"

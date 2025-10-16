@@ -13,15 +13,15 @@ const AuthContext = createContext({
 });
 
 // Función para revisar si el accessToken está expirado
-const isTokenExpired = (token) => {
-  if (!token) return true;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return Date.now() >= payload.exp * 1000; // convertir exp a ms
-  } catch (err) {
-    return true; // si no se puede decodificar, consideramos expirado
-  }
-};
+// const isTokenExpired = (token) => {
+//   if (!token) return true;
+//   try {
+//     const payload = JSON.parse(atob(token.split(".")[1]));
+//     return Date.now() >= payload.exp * 1000; // convertir exp a ms
+//   } catch (err) {
+//     return true; // si no se puede decodificar, consideramos expirado
+//   }
+// };
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem("accessToken"));
@@ -41,32 +41,29 @@ export const AuthProvider = ({ children }) => {
 
   // Configuración inicial del contexto y axios
   useEffect(() => {
-    // Configuramos axios con el token inicial de localStorage
-    if (token) {
-      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    }
-
     // Conectamos interceptores con la función que actualiza el token
     setupInterceptors(setTokenAndAxios, logout);
 
     // Refresh preventivo solo si el token ha expirado
-    const initAuth = async () => {
-      if (!token) return setIsLoading(false);
-
-      if (isTokenExpired(token)) {
-        try {
-          const data = await authService.renew();
-          setTokenAndAxios(data.token);
-        } catch (err) {
-          logout();
-        }
+    const checkSession = async () => {
+      try {
+        const data = await authService.renew();
+        setTokenAndAxios(data.token); // TODO recordar esto !!!
+        setUser(data.user)
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.log(error.message);
+        logout();
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
-    initAuth();
+    checkSession();
   }, []);
+
+  console.log(token);
+  
 
   const login = (accessToken, userData) => {
     try {

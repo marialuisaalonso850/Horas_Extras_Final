@@ -47,12 +47,13 @@ async function validarTurnoYHoras(data, idParaExcluir = null) {
     data.hora_fin_trabajo = finNuevo.format('HH:mm');
     avisoCambio = `El turno cruzaba medianoche y se ajustó automáticamente: ahora termina el ${data.fecha_fin_trabajo} a las ${data.hora_fin_trabajo}.`;
   }
-  
-   let ahora = moment();
-   
-  if( data.fecha_inicio_trabajo.isAfter(ahora) || data.fecha_fin_trabajo.isAfter(ahora) ){
+
+  let ahora = moment();
+
+  if (inicioNuevo.isAfter(ahora) || finNuevo.isAfter(ahora)) {
     return { success: false, status: 400, message: 'No se pueden registrar horas extras en fechas futuras.' };
   }
+
   if (!finNuevo.isAfter(inicioNuevo)) {
     return { success: false, status: 400, message: 'La hora de fin debe ser posterior a la hora de inicio.' };
   }
@@ -401,12 +402,13 @@ const listarExtras = async (req, res) => {
       .sort({ fecha_inicio_trabajo: -1 })
       .skip(skip)
       .limit(limit);
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       total,
       page,
       totalPages: Math.ceil(total / limit),
-      data: extras });
+      data: extras
+    });
     console.log(extras);
 
   } catch (error) {

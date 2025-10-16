@@ -1,3 +1,7 @@
+db.cargos.find()
+db.horasextras.find()
+cls
+use epadatabase
 db.funcionarios.deleteMany({})
 db.cargos.deleteMany({})
 db.horasextras.deleteMany({})

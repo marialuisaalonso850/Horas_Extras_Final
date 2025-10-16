@@ -1,3 +1,11 @@
+db.funcionarios.deleteMany({})
+db.cargos.deleteMany({})
+db.horasextras.deleteMany({})
+use epadatabase
+db.horasextras.find()
+db.cargos.find()
+db.funcionarios.find()
+use epadatabase
 db.funcionarios.find()
 show collections
 db.cargos.deleteMany({})

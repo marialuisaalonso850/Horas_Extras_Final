@@ -191,6 +191,8 @@ const importarExcel = async (req, res) => {
             "hora_inicio_trabajo",
             "fecha_fin_trabajo",
             "hora_fin_trabajo",
+            "es_festivo_Inicio",
+            "es_festivo_Fin"
         ];
 
         const headerIndexMap = {};
@@ -232,6 +234,11 @@ const importarExcel = async (req, res) => {
                 let nombre = row[headerIndexMap.nombre_completo];
 
                 let funcionario = null;
+
+                const nombreCargo = row[0]; // Cargo is always in Column A (index 0)
+                if (!nombreCargo || nombreCargo.toString().trim() === '') {
+                    throw new Error("La columna A (Cargo) es obligatoria y no puede estar vacía, Revisar");
+                }
 
 
                 if (cedula && cedula.toString().toLowerCase().includes("temporal")) {

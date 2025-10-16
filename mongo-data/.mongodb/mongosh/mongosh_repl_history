@@ -1,3 +1,23 @@
+db.funcionarios.find()
+show collections
+db.cargos.deleteMany({})
+db.funcionarios.deleteMany({})
+db.reportes.deleteMany({})
+db.horasextras.deleteMany({})
+use epadatabase
+db.funcionarios.find()
+db.cargos.find()
+show collections
+use epadatabase
+db.funcionarios.find()
+db.horasextras.find()
+cls
+use epadatabase
+db.horasextras.find()
+db.funcionarios.find()
+db.reportes.deleteMany({})
+db.horasextras.find()
+show collections
 db.horasextras.find()
 db.horasextras.deleteMany({})
 db.reportes.deleteMany({})

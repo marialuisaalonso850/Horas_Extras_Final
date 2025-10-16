@@ -20,6 +20,10 @@ export const GetOvertime = ({ onBack }) => {
   const [openModal, setOpenModal] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const limit = 15;
 
   const {
     register,
@@ -29,8 +33,8 @@ export const GetOvertime = ({ onBack }) => {
   } = useForm();
 
   useEffect(() => {
-    getHorasExtra();
-  }, []);
+    getHorasExtra(currentPage); 
+  }, [currentPage]);
 
   useEffect(() => {
   if (busqueda.trim() === '') {
@@ -51,11 +55,15 @@ export const GetOvertime = ({ onBack }) => {
 }, [busqueda, horasExtra]);
 
 
-  const getHorasExtra = async () => {
+  const getHorasExtra = async (page) => {
+    setLoading(true);
     try {
-      const response = await horasExtraService.listarExtras();
+      const response = await horasExtraService.listarExtras(page, limit);
       setHorasExtra(response.data);
       setFiltroHorasExtra(response.data);
+      setCurrentPage(response.page);
+      setTotalPages(response.totalPages);
+      setTotalRecords(response.total);
     } catch (error) {
       console.error('Error cargando horas extra', error);
     } finally {
@@ -63,6 +71,12 @@ export const GetOvertime = ({ onBack }) => {
     }
   };
 
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+  
   const abrirModal = (id) => {
     setIdSeleccionado(id);
     setMostrarModal(true);
@@ -247,6 +261,30 @@ export const GetOvertime = ({ onBack }) => {
           </tbody>
         </table>
 
+        <div className="flex justify-between items-center mt-4">
+          <span className="text-sm text-gray-700">
+            Mostrando {filtroHorasExtra.length} de {totalRecords} registros
+          </span>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 bg-epaColor text-white rounded disabled:bg-gray-400"
+            >
+              Anterior
+            </button>
+            <span className="text-sm">
+              Página {currentPage} de {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 bg-epaColor text-white rounded disabled:bg-gray-400"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
         {horasExtra.length === 0 && (
           <div className="text-center text-xl text-gray-500 font-semibold py-8">
             No se encontraron registros de horas extra

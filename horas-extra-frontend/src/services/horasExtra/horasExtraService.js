@@ -14,9 +14,15 @@ export const horasExtraService = {
     }
   },
 
-  listarExtras: async () => {
+
+  listarExtras: async (page = 1, limit = 15) => { 
     try {
-      const res = await axiosInstance.get("/extras/listar");
+      const params = new URLSearchParams({
+        page: page,
+        limit: limit,
+      });
+      
+      const res = await axiosInstance.get(`/extras/listar?${params.toString()}`);
       return res.data;
     } catch (error) {
       console.error("Error listando horas extra:", error);

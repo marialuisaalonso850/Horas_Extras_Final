@@ -99,7 +99,7 @@ const crearExtras = async (req, res) => {
   try {
     let data = req.body;
 
-   // console.log("Datos recibidos para crearExtras:", data);
+    // console.log("Datos recibidos para crearExtras:", data);
 
     const validacion = await validarTurnoYHoras(data);
     if (!validacion.success) {
@@ -172,16 +172,16 @@ const updateExtra = async (req, res) => {
     }
 
     // 3. Recalcular las horas con los datos ya validados
-    const calculos = await calcularHorasExtras (datosFinales);
-  
-   if (!calculos.success) {
-  console.error("❌ Error en calcularHorasExtras:", calculos);
-  return res.status(400).json({
-    success: false,
-    message: calculos.message || "Error desconocido al calcular horas extras",
-    detalle: calculos // incluir el objeto completo en la respuesta (opcional)
-  });
-}
+    const calculos = await calcularHorasExtras(datosFinales);
+
+    if (!calculos.success) {
+      console.error("❌ Error en calcularHorasExtras:", calculos);
+      return res.status(400).json({
+        success: false,
+        message: calculos.message || "Error desconocido al calcular horas extras",
+        detalle: calculos // incluir el objeto completo en la respuesta (opcional)
+      });
+    }
 
     // 4. Actualizar el documento original con los nuevos datos y los nuevos cálculos
     Object.assign(extraOriginal, nuevosDatos, calculos);
@@ -211,7 +211,7 @@ const updateExtra = async (req, res) => {
 
 const exportarExtrasExcel = async (req, res) => {
   try {
-    const { identificacion, fechaInicio, fechaFin} = req.query;
+    const { identificacion, fechaInicio, fechaFin } = req.query;
     let query = {};
     let funcionarioFiltrado = null;
 
@@ -219,7 +219,7 @@ const exportarExtrasExcel = async (req, res) => {
 
 
     if (identificacion) {
-      const func = await Funcionario.findOne({ identificacion  });
+      const func = await Funcionario.findOne({ identificacion });
       if (!func) {
         return res.status(404).json({ success: false, message: 'No se encontró un funcionario con esa identificación.' });
       }
@@ -384,10 +384,24 @@ const eliminarExtras = async (req, res) => {
 
 const listarExtras = async (req, res) => {
   try {
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 15;
+
+    const skip = (page - 1) * limit;
+
+    const total = await Extras.countDocuments();
     const extras = await Extras.find()
       .populate({ path: "FuncionarioAsignado", select: "nombre_completo identificacion", populate: { path: "Cargo", select: "name" } })
-      .sort({ fecha_inicio_trabajo: -1 });
-    res.status(200).json({ success: true, data: extras });
+      .sort({ fecha_inicio_trabajo: -1 })
+      .skip(skip)
+      .limit(limit);
+    res.status(200).json({ 
+      success: true, 
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      data: extras });
     console.log(extras);
 
   } catch (error) {

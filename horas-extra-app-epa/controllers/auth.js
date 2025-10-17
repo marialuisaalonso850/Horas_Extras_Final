@@ -246,25 +246,36 @@ const solicitarReset = async (req, res) => {
     await usuario.save();
 
     // 6) Enviar correo
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: config.emailUser, pass: config.emailPass }
-    });
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: config.emailUser, pass: config.emailPass }
+      });
 
-    await transporter.sendMail({
-      from: `"Soporte App" <${config.emailUser}>`,
-      to: emailNormalized,
-      subject: "Recuperación de contraseña",
-      html: `
+      await transporter.sendMail({
+        from: `"Soporte App" <${config.emailUser}>`,
+        to: emailNormalized,
+        subject: "Recuperación de contraseña",
+        html: `
         <p>Hola ${usuario.name},</p>
         <p>Tu código de recuperación es:</p>
         <h2>${resetCode}</h2>
         <p>Este código vence en 10 minutos.</p>
       `
-    });
+      });
+      
+      return res.json({ ok: true, msg: "Se ha enviado un código de verificación a su correo." });
+    } catch (emailError) {
+      console.error("❌ Error al enviar el correo:", emailError);
+      if (['ENOTFOUND', 'ECONNRESET', 'ETIMEDOUT'].includes(emailError.code)) {
+        return res.status(503).json({ 
+          ok: false,
+          msg: "No se pudo conectar al servidor de correos. Por favor, verifica tu conexión a internet."
+        });
+      }
 
-    return res.json({ ok: true, msg: "Se ha enviado un código de verificación a su correo." });
-
+      throw emailError;
+    }
   } catch (error) {
     console.error(error);
     return res.status(500).json({ ok: false, msg: "Error en el servidor." });

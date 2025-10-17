@@ -263,11 +263,11 @@ const solicitarReset = async (req, res) => {
         <p>Este código vence en 10 minutos.</p>
       `
       });
-      
+
       return res.json({ ok: true, msg: "Se ha enviado un código de verificación a su correo." });
     } catch (emailError) {
       console.error("❌ Error al enviar el correo:", emailError);
-      if (['ENOTFOUND', 'ECONNRESET', 'ETIMEDOUT'].includes(emailError.code)) {
+      if (['ENOTFOUND', 'ECONNRESET', 'ETIMEDOUT', 'ESOCKET'].includes(emailError.code)) {
         return res.status(503).json({ 
           ok: false,
           msg: "No se pudo conectar al servidor de correos. Por favor, verifica tu conexión a internet."
